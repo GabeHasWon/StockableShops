@@ -5,3 +5,5 @@ The mod allows for any item, with any condition, on any npc, with any restock co
 
 Github ----
 
+The Github can be found here: https://github.com/GabeHasWon/StockableShops
+Refer to the Github Wiki for how to use this mod: https://github.com/GabeHasWon/StockableShops/wiki

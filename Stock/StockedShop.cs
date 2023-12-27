@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace StockableShops.Stock;
@@ -14,9 +15,23 @@ public abstract class StockedShop : ModType
     private static readonly Dictionary<string, Dictionary<int, StockedShop>> _shopsPerModByNpcId = new();
     private static readonly Dictionary<int, Dictionary<string, StockedShop>> _shopsPerNpcIdByMod = new();
 
+    /// <summary>
+    /// Refers to which NPC this shop is attached to. 
+    /// If the NPC you're attaching to does not have a vanilla system shop, this <see cref="StockedShop"/> does nothing.
+    /// </summary>
     public abstract int NPCType { get; }
 
-    public List<ShopItem> FullStock = new();
+    /// <summary>
+    /// By what conditions this shop's stock refreshes. 
+    /// This is mandatory for mods that may want to show other mod's restock conditions without undue effort.<br/>
+    /// This should be a localized object, so make sure you're using <see cref="Language.GetTextValue"/> or catching a localized text to use.
+    /// </summary>
+    public abstract string RestockCondition { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public readonly List<ShopItem> FullStock = new();
 
     private readonly List<ShopItem> stock = new();
 
@@ -24,6 +39,8 @@ public abstract class StockedShop : ModType
     /// Default bool for tracking if the shop needs a restock or not.
     /// </summary>
     protected bool needsRestock = false;
+
+    protected bool firstStock = true;
 
     /// <summary>
     /// Returns all shops registered under the given mod name.
@@ -120,9 +137,14 @@ public abstract class StockedShop : ModType
         if (ShouldRestockShop())
         {
             stock.Clear();
-            FullStock.Clear();
 
-            SetupStock(npc);
+            if (firstStock)
+            {
+                firstStock = true;
+                FullStock.Clear();
+                SetupStock(npc);
+            }
+
             needsRestock = false;
             reset = false;
         }
@@ -224,6 +246,8 @@ public abstract class StockedShop : ModType
     /// </summary>
     public class ShopItem
     {
+        private static readonly Condition AlwaysTrue = new Condition(string.Empty, () => true);
+
         public virtual Condition Condition { get; protected set; }
         public virtual Item Item { get; protected set; }
 
@@ -233,7 +257,7 @@ public abstract class StockedShop : ModType
         /// <param name="item">The item that this holds.</param>
         public ShopItem(Item item)
         {
-            Condition = new Condition(string.Empty, () => true);
+            Condition = AlwaysTrue;
             Item = item;
             Item.buyOnce = true;
         }
@@ -263,6 +287,9 @@ public abstract class StockedShop : ModType
         }
     }
 
+    /// <summary>
+    /// Handles updating all loaded StockedShops.
+    /// </summary>
     private class StockedShopUpdater : ModSystem
     {
         public override void PostUpdateItems()

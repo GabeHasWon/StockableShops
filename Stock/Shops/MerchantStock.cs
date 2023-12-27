@@ -1,5 +1,6 @@
 ﻿using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace StockableShops.Stock.Shops;
@@ -9,9 +10,10 @@ namespace StockableShops.Stock.Shops;
 /// </summary>
 internal class MerchantStock : StockedShop
 {
-    public override bool IsLoadingEnabled(Mod mod) => true; // This shouldn't actually be used so don't load this.
+    public override bool IsLoadingEnabled(Mod mod) => false; // This shouldn't actually be in-game so don't load this.
 
     public override int NPCType => NPCID.Merchant;
+    public override string RestockCondition => Language.GetTextValue("Mods.StockableShops.Shops.Merchant");
 
     public override void SetupStock(NPC npc)
     {
