@@ -119,7 +119,8 @@ public abstract class StockedShop : ModType
     }
 
     /// <summary>
-    /// Called when the stock needs to be set up. Modify <see cref="FullStock"/>, as <see cref="stock"/> is the stock after being checked for availability.
+    /// Called when the stock needs to be set up. Modify <see cref="FullStock"/>, as <see cref="stock"/> is the stock after being checked for availability.<br/>
+    /// This is ONLY RUN ONCE. It's similar to ModifyNPCLoot, so only use it when creating the initial stock.
     /// </summary>
     public abstract void SetupStock(NPC npc);
 
@@ -127,9 +128,11 @@ public abstract class StockedShop : ModType
     /// Called when the given <see cref="NPC"/>'s shop is stocked or restocked.<br/>
     /// This is run through <see cref="GlobalNPC.ModifyActiveShop(NPC, string, Item[])"/>.<br/>
     /// <see cref="ShouldRestockShop"/> is checked every time the shop is opened, and is what determines if a new or replacement stock is given.<br/>
-    /// Otherwise, the shop will contain the remaining items from <see cref="stock"/>.
+    /// Otherwise, the shop will contain the remaining items from <see cref="stock"/>.<br/>
+    /// You should only override this if you really know what you're doing! This default implementation is good for 99% of cases.
     /// </summary>
     /// <param name="npc">The NPC which is being restocked.</param>
+    /// <param name="shop">The shop (item array) being modified.</param>
     public virtual void StockShop(NPC npc, string shopName, Item[] shop)
     {
         bool reset = true;
@@ -145,12 +148,20 @@ public abstract class StockedShop : ModType
                 SetupStock(npc);
             }
 
+            RestockShop(npc, shop);
             needsRestock = false;
             reset = false;
         }
 
         BasicStockShop(shop, reset);
     }
+
+    /// <summary>
+    /// Called when the shop is restocked. Use this to modify variables, update stuff or manually modify <see cref="stock"/>.
+    /// </summary>
+    /// <param name="npc">The NPC which is being restocked.</param>
+    /// <param name="shop">The shop (item array) being modified.</param>
+    protected virtual void RestockShop(NPC npc, Item[] shop) { }
 
     /// <summary>
     /// This is the basic implementation for stocking the shop. By default, it generates the new stock (if <paramref name="reset"/> is true), 
@@ -214,10 +225,10 @@ public abstract class StockedShop : ModType
     }
 
     /// <summary>
-    /// Determines whether the shop should restock. By default, this returns <c>!<see cref="needsRestock"/> and <see cref="Main.dayTime"/></c>.
+    /// Determines whether the shop should restock. By default, this returns <c><see cref="stock"/>.Count == 0 or (!<see cref="needsRestock"/> and <see cref="Main.dayTime"/>)</c>.
     /// </summary>
     /// <returns>Whether the shop should restock.</returns>
-    public virtual bool ShouldRestockShop() => !needsRestock && Main.dayTime;
+    public virtual bool ShouldRestockShop() => stock.Count == 0 || (!needsRestock && Main.dayTime);
 
     /// <summary>
     /// Runs while the NPC's shop is open. Does nothing by default.
@@ -241,15 +252,18 @@ public abstract class StockedShop : ModType
     /// <summary>
     /// Handles a single stocked item with a given condition.<br/>
     /// For example:
-    /// <code>new ShopItem(new Conditions.BeesSeed(), new Item(ItemID.Dirt, 20));</code>
+    /// <code>new ShopItem(new Condition.NotTheBeesWorld(), new Item(ItemID.Dirt, 20));</code>
     /// would create a shop item that is only available on a Not The Bees! world, and has a max stock of 20.
     /// </summary>
     public class ShopItem
     {
-        private static readonly Condition AlwaysTrue = new Condition(string.Empty, () => true);
+        private static readonly Condition AlwaysTrue = new(string.Empty, () => true);
 
         public virtual Condition Condition { get; protected set; }
         public virtual Item Item { get; protected set; }
+
+        public static ShopItem ModItem<T>() where T : ModItem => new(new(ModContent.ItemType<T>()));
+        public static ShopItem ModItem<T>(Condition condition) where T : ModItem => new(condition, new(ModContent.ItemType<T>()));
 
         /// <summary>
         /// Creates an instance of <see cref="ShopItem"/> with the given item and a condition that is always true.

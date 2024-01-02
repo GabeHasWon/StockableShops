@@ -3,6 +3,9 @@ Stackable Shops ----
 This mod is an API which allows modders to add their own stock to any NPC of their choice.
 The mod allows for any item, with any condition, on any npc, with any restock condition (by default, shops restock at the beginning of the day.)
 
+REPORT ISSUES TO THIS DISCORD: https://discord.gg/FAnwxtM2vc
+OR REPORT TO THE MOD'S STEAM WORKSHOP PAGE. Thank you!
+
 Github ----
 
 The Github can be found here: https://github.com/GabeHasWon/StockableShops
