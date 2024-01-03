@@ -24,15 +24,18 @@ public abstract class StockedShop : ModType
     /// <summary>
     /// By what conditions this shop's stock refreshes. 
     /// This is mandatory for mods that may want to show other mod's restock conditions without undue effort.<br/>
-    /// This should be a localized object, so make sure you're using <see cref="Language.GetTextValue"/> or catching a localized text to use.
+    /// This should be a localized object, so make sure you're using <see cref="Language.GetTextValue(string)"/> or catching a localized text to use.
     /// </summary>
     public abstract string RestockCondition { get; }
 
     /// <summary>
-    /// 
+    /// The entire stock of this shop. Should only be used in <see cref="SetupStock(NPC)"/>, and never again outside of that.
     /// </summary>
     public readonly List<ShopItem> FullStock = new();
 
+    /// <summary>
+    /// The current stock of this shop. Can be modified anytime.
+    /// </summary>
     private readonly List<ShopItem> stock = new();
 
     /// <summary>
@@ -40,13 +43,16 @@ public abstract class StockedShop : ModType
     /// </summary>
     protected bool needsRestock = false;
 
+    /// <summary>
+    /// Used to flag if this is the first time this shop is stocked, in order to call <see cref="SetupStock(NPC)"/>.
+    /// </summary>
     protected bool firstStock = true;
 
     /// <summary>
     /// Returns all shops registered under the given mod name.
     /// </summary>
     /// <param name="name">Name of the mod to reference.</param>
-    /// <returns>The <see cref="Dictionary{,}"/> containing the mod's shops, by NPC ID.</returns>
+    /// <returns>The <see cref="Dictionary{TKey, TValue}"/> containing the mod's shops, by NPC ID.</returns>
     /// <exception cref="ArgumentException"/>
     public static Dictionary<int, StockedShop> ShopsPerMod(string name)
     {
@@ -60,7 +66,7 @@ public abstract class StockedShop : ModType
     /// Returns all shops registered under the given NPC ID.
     /// </summary>
     /// <param name="id">The NPC ID to reference.</param>
-    /// <returns>The <see cref="Dictionary{,}"/> containing each of the NPC's shops, by mod.</returns>
+    /// <returns>The <see cref="Dictionary{TKey, TValue}"/> containing each of the NPC's shops, by mod.</returns>
     /// <exception cref="ArgumentException"/>
     public static Dictionary<string, StockedShop> ShopsPerNpcId(int id)
     {
@@ -92,6 +98,7 @@ public abstract class StockedShop : ModType
 
     /// <inheritdoc cref="GetShop(int, string)"/>
     /// <param name="mod">Mod to use mod.Name.</param>
+    /// <param name="id">NPC ID to use.</param>
     public static StockedShop GetShop(int id, Mod mod) => GetShop(id, mod.Name);
 
     /// <inheritdoc cref="GetShop(int, string)"/>
@@ -133,6 +140,7 @@ public abstract class StockedShop : ModType
     /// </summary>
     /// <param name="npc">The NPC which is being restocked.</param>
     /// <param name="shop">The shop (item array) being modified.</param>
+    /// <param name="shopName">The name of the shop.</param>
     public virtual void StockShop(NPC npc, string shopName, Item[] shop)
     {
         bool reset = true;
@@ -259,11 +267,15 @@ public abstract class StockedShop : ModType
     {
         private static readonly Condition AlwaysTrue = new(string.Empty, () => true);
 
+        /// <summary>
+        /// The condition of this <see cref="ShopItem"/>.
+        /// </summary>
         public virtual Condition Condition { get; protected set; }
-        public virtual Item Item { get; protected set; }
 
-        public static ShopItem ModItem<T>() where T : ModItem => new(new(ModContent.ItemType<T>()));
-        public static ShopItem ModItem<T>(Condition condition) where T : ModItem => new(condition, new(ModContent.ItemType<T>()));
+        /// <summary>
+        /// The item this <see cref="ShopItem"/> provides.
+        /// </summary>
+        public virtual Item Item { get; protected set; }
 
         /// <summary>
         /// Creates an instance of <see cref="ShopItem"/> with the given item and a condition that is always true.

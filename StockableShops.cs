@@ -3,11 +3,11 @@ using Terraria.ModLoader;
 
 namespace StockableShops;
 
-public class StockableShops : Mod
+internal class StockableShops : Mod
 {
 }
 
-public class AnnouncementPlayer : ModPlayer
+internal class AnnouncementPlayer : ModPlayer
 {
     public override void OnEnterWorld()
     {
