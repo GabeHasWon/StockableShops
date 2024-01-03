@@ -1,6 +1,4 @@
-- Removed testing merchant stock
-- Updated API for how restocking works:
-Now, StockedShop::SetupStock is explicitly called once, like ModNPC::ModifyNPCLoot. 
-StockedShop::RestockShop is now called every restock, including the first one.
-- Added ShopItem::FromModItem methods for easier ShopItem creation.
-- Fixed inaccurate XML doc on ShopItem.
+- Hopefully fixed performance bottleneck by replacing ModContent.GetContent iteration with the iteration of a manually maintained internal list
+- Added more XML documentation
+- Internalized some superfluous classes
+- Slightly optimized what StockedVendorNPC applies to

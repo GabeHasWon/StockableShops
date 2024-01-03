@@ -12,8 +12,13 @@ namespace StockableShops.Stock;
 /// </summary>
 public abstract class StockedShop : ModType
 {
-    private static readonly Dictionary<string, Dictionary<int, StockedShop>> _shopsPerModByNpcId = new();
-    private static readonly Dictionary<int, Dictionary<string, StockedShop>> _shopsPerNpcIdByMod = new();
+    /// <summary>
+    /// Used to collect all loaded <see cref="StockedShop"/>s, in order to avoid <see cref="ModContent.GetContent{T}"/> bottleneck.
+    /// </summary>
+    private static readonly List<StockedShop> _allShops = [];
+
+    private static readonly Dictionary<string, Dictionary<int, StockedShop>> _shopsPerModByNpcId = [];
+    private static readonly Dictionary<int, Dictionary<string, StockedShop>> _shopsPerNpcIdByMod = [];
 
     /// <summary>
     /// Refers to which NPC this shop is attached to. 
@@ -31,12 +36,12 @@ public abstract class StockedShop : ModType
     /// <summary>
     /// The entire stock of this shop. Should only be used in <see cref="SetupStock(NPC)"/>, and never again outside of that.
     /// </summary>
-    public readonly List<ShopItem> FullStock = new();
+    public readonly List<ShopItem> FullStock = [];
 
     /// <summary>
     /// The current stock of this shop. Can be modified anytime.
     /// </summary>
-    private readonly List<ShopItem> stock = new();
+    private readonly List<ShopItem> stock = [];
 
     /// <summary>
     /// Default bool for tracking if the shop needs a restock or not.
@@ -123,6 +128,8 @@ public abstract class StockedShop : ModType
             _shopsPerNpcIdByMod.Add(NPCType, new Dictionary<string, StockedShop>() { { Mod.Name, this } });
         else
             _shopsPerNpcIdByMod[NPCType].Add(Mod.Name, this);
+
+        _allShops.Add(this);
     }
 
     /// <summary>
@@ -318,11 +325,9 @@ public abstract class StockedShop : ModType
     /// </summary>
     private class StockedShopUpdater : ModSystem
     {
-        public override void PostUpdateItems()
+        public override void PostUpdateEverything()
         {
-            var shops = ModContent.GetContent<StockedShop>();
-
-            foreach (var shop in shops)
+            foreach (var shop in _allShops)
                 shop.Update();
         }
     }
