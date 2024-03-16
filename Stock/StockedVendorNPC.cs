@@ -4,12 +4,14 @@ using Terraria.ModLoader;
 namespace StockableShops.Stock;
 
 /// <summary>
-/// Handles stocked vendor NPCs. This is the primary reason this mod must be loaded, otherwise this'd be a dllReference.
+/// Handles stocked vendor NPCs.
 /// </summary>
-internal class StockedVendorNPC : GlobalNPC
+public sealed class StockedVendorNPC : GlobalNPC
 {
+    /// <inheritdoc/>
     public override bool AppliesToEntity(NPC entity, bool lateInstantiation) => entity.townNPC && StockedShop.HasShop(entity.type);
 
+    /// <inheritdoc/>
     public override void ModifyActiveShop(NPC npc, string shopName, Item[] items)
     {
         var shops = StockedShop.ShopsPerNpcId(npc.type);
@@ -18,6 +20,7 @@ internal class StockedVendorNPC : GlobalNPC
             item.StockShop(npc, shopName, items);
     }
 
+    /// <inheritdoc/>
     public override void PostAI(NPC npc)
     {
         var talkNPC = Main.LocalPlayer.TalkNPC;

@@ -17,7 +17,10 @@ internal class MerchantStock : StockedShop
 
     public override void SetupStock(NPC npc)
     {
-        FullStock.Add(new ShopItem(new Item(ItemID.KingStatue, 2) { shopCustomPrice = Item.buyPrice(0, 0, 10, 0) }));
-        FullStock.Add(new ShopItem(Condition.DownedEowOrBoc, new Item(ItemID.QueenStatue, 5) { shopCustomPrice = Item.buyPrice(0, 20, 0, 0) }));
+        // Adds 3 King Statues to the shop with a price of 10 silver each.
+        FullStock.Add(new ShopItem(new Item(ItemID.KingStatue, 3) { shopCustomPrice = Item.buyPrice(0, 0, 10, 0) }));
+
+        // Adds 1 Queen Statue with a price of 20 gold, only after the evil boss is dead.
+        FullStock.Add(new ShopItem(Condition.DownedEowOrBoc, new Item(ItemID.QueenStatue) { shopCustomPrice = Item.buyPrice(0, 20, 0, 0) }));
     }
 }

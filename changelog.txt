@@ -1,4 +1,4 @@
-- Hopefully fixed performance bottleneck by replacing ModContent.GetContent iteration with the iteration of a manually maintained internal list
-- Added more XML documentation
-- Internalized some superfluous classes
-- Slightly optimized what StockedVendorNPC applies to
+- Added more docs
+- Fixed price issues
+- Fixed default condition being invalid
+- Fixed sold items not being marked as "in shop"

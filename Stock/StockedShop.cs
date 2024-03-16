@@ -227,6 +227,9 @@ public abstract class StockedShop : ModType
         {
             shop[index] = item.Item;
 
+            // This is necessary to adjust price to fit the shop.
+            shop[index].shopCustomPrice = shop[index].shopCustomPrice is null ? shop[index].value * 5 : shop[index].shopCustomPrice * 4;
+
             if (addToStock)
                 stock.Add(item);
 
@@ -243,7 +246,7 @@ public abstract class StockedShop : ModType
     /// Determines whether the shop should restock. By default, this returns <c><see cref="stock"/>.Count == 0 or (!<see cref="needsRestock"/> and <see cref="Main.dayTime"/>)</c>.
     /// </summary>
     /// <returns>Whether the shop should restock.</returns>
-    public virtual bool ShouldRestockShop() => stock.Count == 0 || (!needsRestock && Main.dayTime);
+    public virtual bool ShouldRestockShop() => stock.Count == 0 || (needsRestock && Main.dayTime);
 
     /// <summary>
     /// Runs while the NPC's shop is open. Does nothing by default.
@@ -261,14 +264,17 @@ public abstract class StockedShop : ModType
     public virtual void Update()
     {
         if (!Main.dayTime)
-            needsRestock = false;
+            needsRestock = true;
     }
 
     /// <summary>
     /// Handles a single stocked item with a given condition.<br/>
     /// For example:
-    /// <code>new ShopItem(new Condition.NotTheBeesWorld(), new Item(ItemID.Dirt, 20));</code>
-    /// would create a shop item that is only available on a Not The Bees! world, and has a max stock of 20.
+    /// <c>new ShopItem(new Condition.NotTheBeesWorld(), new Item(ItemID.Dirt, 20));</c>
+    /// would create a shop item that is only available on a Not The Bees! world, and has a max stock of 20.<br/><br/>
+    /// NOTE: For some vanilla reason, you have to manually multiply the item's sell value before being sold for the item to properly reflect its sell price.<br/>
+    /// <c>item.shopCustomPrice = item.shopCustomPrice is null ? item.value * 5 : item.shopCustomPrice * 4;</c><br/>
+    /// This cannot be done automatically in ShopItem for a reason I can't figure out.
     /// </summary>
     public class ShopItem
     {
@@ -293,6 +299,8 @@ public abstract class StockedShop : ModType
             Condition = AlwaysTrue;
             Item = item;
             Item.buyOnce = true;
+            Item.isAShopItem = true;
+            //Item.shopCustomPrice = Item.shopCustomPrice is null ? Item.value * 5 : Item.shopCustomPrice * 4;
         }
 
         /// <summary>
