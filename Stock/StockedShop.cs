@@ -227,9 +227,6 @@ public abstract class StockedShop : ModType
         {
             shop[index] = item.Item;
 
-            // This is necessary to adjust price to fit the shop.
-            shop[index].shopCustomPrice = shop[index].shopCustomPrice is null ? shop[index].value * 5 : shop[index].shopCustomPrice * 4;
-
             if (addToStock)
                 stock.Add(item);
 
