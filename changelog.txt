@@ -1,1 +1,1 @@
-- Removed price boosting code, will need to be accounted for in other mods
+- Removed buyOnce flag from sold items, fixed extremely low prices
