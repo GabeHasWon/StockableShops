@@ -158,7 +158,7 @@ public abstract class StockedShop : ModType
 
             if (firstStock)
             {
-                firstStock = true;
+                firstStock = false;
                 FullStock.Clear();
                 SetupStock(npc);
             }
