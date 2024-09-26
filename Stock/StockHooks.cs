@@ -130,7 +130,9 @@ internal class StockHooks : ModSystem
         cursor.EmitDelegate((Item i) =>
         {
             var stack = i.stack;
-            i.stack = i.GetGlobalItem<StockedItem>().Stack;
+            var stockedItem = i.GetGlobalItem<StockedItem>();
+            if (stockedItem.Stockable)
+                i.stack = stockedItem.Stack;
             return stack;
         });
         cursor.EmitStloc(origStack);
