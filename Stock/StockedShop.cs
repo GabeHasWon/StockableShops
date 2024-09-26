@@ -61,10 +61,10 @@ public abstract class StockedShop : ModType
     /// <exception cref="ArgumentException"/>
     public static Dictionary<int, StockedShop> ShopsPerMod(string name)
     {
-        if (!_shopsPerModByNpcId.ContainsKey(name))
+        if (!_shopsPerModByNpcId.TryGetValue(name, out Dictionary<int, StockedShop>? shopsPerMod))
             throw new ArgumentException($"No mod called {name} has any registered shops!");
 
-        return _shopsPerModByNpcId[name];
+        return shopsPerMod;
     }
 
     /// <summary>
@@ -75,10 +75,10 @@ public abstract class StockedShop : ModType
     /// <exception cref="ArgumentException"/>
     public static Dictionary<string, StockedShop> ShopsPerNpcId(int id)
     {
-        if (!_shopsPerNpcIdByMod.ContainsKey(id))
+        if (!_shopsPerNpcIdByMod.TryGetValue(id, out Dictionary<string, StockedShop>? shopsPerNpcId))
             throw new ArgumentException($"No NPCID by the ID {id} (\"{Lang.GetNPCNameValue(id)}\") has any registered shops!");
 
-        return _shopsPerNpcIdByMod[id];
+        return shopsPerNpcId;
     }
 
     /// <inheritdoc cref="ShopsPerNpcId(int)"/>
@@ -119,15 +119,15 @@ public abstract class StockedShop : ModType
     {
         ModTypeLookup<StockedShop>.Register(this);
 
-        if (!_shopsPerModByNpcId.ContainsKey(Mod.Name))
+        if (!_shopsPerModByNpcId.TryGetValue(Mod.Name, out Dictionary<int, StockedShop>? shopsPerMod))
             _shopsPerModByNpcId.Add(Mod.Name, new Dictionary<int, StockedShop>() { { NPCType, this } });
         else
-            _shopsPerModByNpcId[Mod.Name].Add(NPCType, this);
+            shopsPerMod.Add(NPCType, this);
 
-        if (!_shopsPerNpcIdByMod.ContainsKey(NPCType))
+        if (!_shopsPerNpcIdByMod.TryGetValue(NPCType, out Dictionary<string, StockedShop>? shopsPerNpcId))
             _shopsPerNpcIdByMod.Add(NPCType, new Dictionary<string, StockedShop>() { { Mod.Name, this } });
         else
-            _shopsPerNpcIdByMod[NPCType].Add(Mod.Name, this);
+            shopsPerNpcId.Add(Mod.Name, this);
 
         _allShops.Add(this);
     }
