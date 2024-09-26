@@ -9,7 +9,7 @@ namespace StockableShops.Stock;
 public sealed class StockedVendorNPC : GlobalNPC
 {
     /// <inheritdoc/>
-    public override bool AppliesToEntity(NPC entity, bool lateInstantiation) => entity.townNPC && StockedShop.HasShop(entity.type);
+    public override bool AppliesToEntity(NPC entity, bool lateInstantiation) => StockedShop.HasShop(entity.type);
 
     /// <inheritdoc/>
     public override void ModifyActiveShop(NPC npc, string shopName, Item[] items)
