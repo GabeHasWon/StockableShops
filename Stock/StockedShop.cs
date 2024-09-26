@@ -41,7 +41,7 @@ public abstract class StockedShop : ModType
     /// <summary>
     /// The current stock of this shop. Can be modified anytime.
     /// </summary>
-    private readonly List<ShopItem> stock = [];
+    protected readonly List<ShopItem> stock = [];
 
     /// <summary>
     /// Default bool for tracking if the shop needs a restock or not.
@@ -150,25 +150,29 @@ public abstract class StockedShop : ModType
     /// <param name="shopName">The name of the shop.</param>
     public virtual void StockShop(NPC npc, string shopName, Item[] shop)
     {
-        bool reset = true;
+        // initialize FullStock
+        if (firstStock)
+        {
+            firstStock = false;
+            FullStock.Clear();
+            SetupStock(npc);
+        }
 
         if (ShouldRestockShop())
         {
-            stock.Clear();
+            needsRestock = false;
 
-            if (firstStock)
+            // clone FullStock into stock
+            stock.Clear();
+            foreach (var item in FullStock)
             {
-                firstStock = false;
-                FullStock.Clear();
-                SetupStock(npc);
+                stock.Add(item.Clone());
             }
 
             RestockShop(npc, shop);
-            needsRestock = false;
-            reset = false;
         }
 
-        BasicStockShop(shop, reset);
+        BasicStockShop(shop);
     }
 
     /// <summary>
@@ -179,56 +183,46 @@ public abstract class StockedShop : ModType
     protected virtual void RestockShop(NPC npc, Item[] shop) { }
 
     /// <summary>
-    /// This is the basic implementation for stocking the shop. By default, it generates the new stock (if <paramref name="reset"/> is true), 
-    /// or adds in the old stock.<br/>
+    /// This is the basic implementation for stocking the shop. By default, it just adds in the stock.<br/>
     /// Old stock that is null, air, or at or below a stack of 0 is automatically removed.
     /// </summary>
     /// <param name="shop"></param>
-    /// <param name="reset"></param>
-    private void BasicStockShop(Item[] shop, bool reset)
+    protected void BasicStockShop(Item[] shop)
     {
-        // Get the first index that isn't air.
+        // Get the first index that is air.
         int index = Array.IndexOf(shop, shop.First(x => x is null || x.IsAir));
-
-        if (!reset)
+        if (index == -1)
         {
-            // Generate and stock each item.
-            foreach (var item in FullStock)
-            {
-                if (StockIndividualItem(item, shop, ref index, true))
-                    break;
-            }
+            return;
         }
-        else
-        {
-            // Remove all empty items from the stock.
-            stock.RemoveAll(item => item.Item is null || item.Item.IsAir || item.Item.stack < 0);
+        
+        // Don't remove, or it may lead to ShouldRestockShop returns true
+        // stock.RemoveAll(item => item.Item is null || item.Item.IsAir || item.Item.stack < 0);
 
-            // And restock the shop.
-            foreach (var item in stock)
+        // restock the shop.
+        foreach (var item in stock)
+        {
+            if (item.Item is null || item.Item.IsAir)
             {
-                if (StockIndividualItem(item, shop, ref index))
-                    break;
+                continue;
             }
+            if (StockIndividualItem(item, shop, ref index))
+                break;
         }
     }
 
     /// <summary>
-    /// Used by <see cref="BasicStockShop(Item[], bool)"/> to stock individual items. You may want to adapt this to fit your specific method if needed.
+    /// Used by <see cref="BasicStockShop(Item[])"/> to stock individual items. You may want to adapt this to fit your specific method if needed.
     /// </summary>
     /// <param name="item">The shop item to stock.</param>
     /// <param name="shop">The shop to stock in.</param>
     /// <param name="index">The current index for the shop.</param>
-    /// <param name="addToStock">Whether this method adds the current <paramref name="item"/> to <see cref="stock"/>.</param>
     /// <returns></returns>
-    private bool StockIndividualItem(ShopItem item, Item[] shop, ref int index, bool addToStock = false)
+    private static bool StockIndividualItem(ShopItem item, Item[] shop, ref int index)
     {
         if (item.Condition.IsMet())
         {
             shop[index] = item.Item;
-
-            if (addToStock)
-                stock.Add(item);
 
             index++;
 
@@ -271,7 +265,7 @@ public abstract class StockedShop : ModType
     /// <c>new ShopItem(new Condition.NotTheBeesWorld(), new Item(ItemID.Dirt, 20));</c>
     /// would create a shop item that is only available on a Not The Bees! world, and has a max stock of 20.<br/><br/>
     /// </summary>
-    public class ShopItem
+    public class ShopItem : ICloneable
     {
         private static readonly Condition AlwaysTrue = new(string.Empty, () => true);
 
@@ -319,6 +313,16 @@ public abstract class StockedShop : ModType
             Item = item;
             Item.buyOnce = true;
         }
+
+        /// <inheritdoc cref="ICloneable.Clone"/>
+        public virtual ShopItem Clone()
+        {
+            var result = (ShopItem)MemberwiseClone();
+            result.Item = Item.Clone();
+            return result;
+        }
+
+        object ICloneable.Clone() => Clone();
     }
 
     /// <summary>
