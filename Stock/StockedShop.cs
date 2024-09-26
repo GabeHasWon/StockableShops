@@ -289,12 +289,7 @@ public abstract class StockedShop : ModType
         /// Creates an instance of <see cref="ShopItem"/> with the given item and a condition that is always true.
         /// </summary>
         /// <param name="item">The item that this holds.</param>
-        public ShopItem(Item item)
-        {
-            Condition = AlwaysTrue;
-            Item = item;
-            Item.isAShopItem = true;
-        }
+        public ShopItem(Item item) : this(AlwaysTrue, item) { }
 
         /// <summary>
         /// Creates an instance of <see cref="ShopItem"/> with the given condition and item.
@@ -305,7 +300,11 @@ public abstract class StockedShop : ModType
         {
             Condition = condition;
             Item = item;
-            Item.buyOnce = true;
+            Item.isAShopItem = true;
+            var stockedItem = Item.GetGlobalItem<StockedItem>();
+            stockedItem.Stack = Item.stack;
+            stockedItem.Stockable = true;
+            Item.stack = 1;
         }
 
         /// <summary>
@@ -313,12 +312,7 @@ public abstract class StockedShop : ModType
         /// </summary>
         /// <param name="condition">The condition to check, i.e. <c>() => Main.dayTime;</c>.</param>
         /// <param name="item">The item that this holds.</param>
-        public ShopItem(Func<bool> condition, Item item)
-        {
-            Condition = new(string.Empty, condition);
-            Item = item;
-            Item.buyOnce = true;
-        }
+        public ShopItem(Func<bool> condition, Item item) : this(new Condition(string.Empty, condition), item) { }
     }
 
     /// <summary>
