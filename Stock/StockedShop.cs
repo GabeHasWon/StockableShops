@@ -293,7 +293,7 @@ public abstract class StockedShop : ModType
         {
             Condition = AlwaysTrue;
             Item = item;
-            Item.isAShopItem = true;
+            Item.buyOnce = true;
         }
 
         /// <summary>
