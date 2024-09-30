@@ -10,16 +10,10 @@ namespace StockableShops.Stock;
 
 internal class StockHooks : ModSystem
 {
-    #region decrease the stocked stack when buying an item
-    private static VariableDefinition DeclareLocal<T>(ILContext il) => DeclareLocal(il, typeof(T));
-    private static VariableDefinition DeclareLocal(ILContext il, Type type)
-    {
-        VariableDefinition result = new(il.Method.DeclaringType.Module.ImportReference(type));
-        il.Body.Variables.Add(result);
-        return result;
-    }
-
-    private static void OnBoughtInSlotHook(ILContext il)
+    /// <summary>
+    /// decrease the stocked stack when buying an item
+    /// </summary>
+    private static void OnBoughtInShopHook(ILContext il)
     {
         ILCursor cursor = new(il);
 
@@ -31,7 +25,7 @@ internal class StockHooks : ModSystem
         cursor.EmitDelegate(OnBoughtInShopInner);
     }
     /// <summary>
-    /// <br/>midify item in shop when bought
+    /// <br/>modify item in shop when bought
     /// <br/>called on every single buy
     /// </summary>
     private static void OnBoughtInShopInner(Item itemInShop, Item boughtItem)
@@ -42,9 +36,10 @@ internal class StockHooks : ModSystem
         stockedItem.Stack -= 1;
         boughtItem.GetGlobalItem<StockedItem>().Stockable = false;
     }
-    #endregion
 
-    #region increase the stocked stack when selling back
+    /// <summary>
+    /// increase the stocked stack when selling back
+    /// </summary>
     private static void SellbackItemHook(ILContext il)
     {
         ILCursor cursor = new(il);
@@ -74,9 +69,10 @@ internal class StockHooks : ModSystem
             }
         }
     }
-    #endregion
 
-    #region make an item unavailable to buy when stocked stack is zero
+    /// <summary>
+    /// make an item unavailable to buy when stocked stack is zero
+    /// </summary>
     private class BuyLimitForPlayer : ModPlayer
     {
         public override bool CanBuyItem(NPC vendor, Item[] shopInventory, Item item)
@@ -85,9 +81,10 @@ internal class StockHooks : ModSystem
             return !stockedItem.Stockable || stockedItem.Stack > 0;
         }
     }
-    #endregion
 
-    #region draw stocked stack
+    /// <summary>
+    /// draw stocked stack when in a shop
+    /// </summary>
     private static void DrawStockedStackHook(ILContext il)
     {
         static bool MatchChatManagerDrawColorString(Instruction i)
@@ -143,12 +140,26 @@ internal class StockHooks : ModSystem
         cursor.EmitLdloc(origStack);
         cursor.EmitStfld(typeof(Item).GetField(nameof(Item.stack))!);
     }
-    #endregion
 
     public override void Load()
     {
-        IL_ItemSlot.HandleShopSlot += OnBoughtInSlotHook;
+        IL_ItemSlot.HandleShopSlot += OnBoughtInShopHook;
         IL_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += DrawStockedStackHook;
         IL_Chest.AddItemToShop += SellbackItemHook;
+    }
+
+    /// <inheritdoc cref="DeclareLocal(ILContext, Type)"/>
+    private static VariableDefinition DeclareLocal<T>(ILContext il) => DeclareLocal(il, typeof(T));
+    /// <summary>
+    /// add a new local variable to a method in IL
+    /// </summary>
+    /// <param name="il">the method's <see cref="ILContext"/></param>
+    /// <param name="type">the type of variable</param>
+    /// <returns>the variable definition</returns>
+    private static VariableDefinition DeclareLocal(ILContext il, Type type)
+    {
+        VariableDefinition result = new(il.Method.DeclaringType.Module.ImportReference(type));
+        il.Body.Variables.Add(result);
+        return result;
     }
 }
