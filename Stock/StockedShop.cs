@@ -164,10 +164,9 @@ public abstract class StockedShop : ModType
 
             // clone FullStock into stock
             stock.Clear();
+
             foreach (var item in FullStock)
-            {
                 stock.Add(item.Clone());
-            }
 
             RestockShop(npc, shop);
         }
@@ -196,16 +195,15 @@ public abstract class StockedShop : ModType
             return;
         }
         
-        // Don't remove, or it may lead to ShouldRestockShop returns true
+        // Don't remove, or it may lead to ShouldRestockShop returning true
         // stock.RemoveAll(item => item.Item is null || item.Item.IsAir || item.Item.stack < 0);
 
         // restock the shop.
         foreach (var item in stock)
         {
             if (item.Item is null || item.Item.IsAir)
-            {
                 continue;
-            }
+            
             if (StockIndividualItem(item, shop, ref index))
                 break;
         }
